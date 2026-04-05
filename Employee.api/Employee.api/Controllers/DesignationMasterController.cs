@@ -15,12 +15,22 @@ namespace Employee.api.Controllers
             _context = context;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
+        [HttpGet("GetAllDesignations")]
+        public async Task<IActionResult> GetAllDesignations()
         {
             try
             {
-                var data = await _context.Designations.ToListAsync();
+                var data = await (from d in _context.Designations
+                    join dept in _context.Departments
+                    on d.departmentId equals dept.departmentId
+                    select new
+                    {
+                        d.designationId,
+                        d.designationName,
+                        d.departmentId,
+                        departmentName = dept.departmentName,
+                    }).ToListAsync();
+
                 return Ok(data);
             }
             catch (Exception ex)
@@ -47,7 +57,7 @@ namespace Employee.api.Controllers
             }
         }
      
-        [HttpPost]
+        [HttpPost("AddDesignation")]
         public async Task<IActionResult> Create([FromBody] Designation model)
         {
             try
@@ -58,16 +68,19 @@ namespace Employee.api.Controllers
                 _context.Designations.Add(model);
                 await _context.SaveChangesAsync();
 
-                return Ok(new { Message = "Designation created successfully", Data = model });
+                return Ok(new { Message = "Designation Created Successfully", Data = model });
             }
+
             catch (Exception ex)
             {
                 return StatusCode(500, new { Message = ex.Message });
             }
         }
-       
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] Designation model)
+
+
+
+        [HttpPut("UpdateDesignation/{id}")]
+        public async Task<IActionResult> UpdateDesignation(int id, [FromBody] Designation model)
         {
             try
             {
@@ -95,8 +108,8 @@ namespace Employee.api.Controllers
             }
         }
        
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        [HttpDelete("DeleteDesignation/{id}")]
+        public async Task<IActionResult> DeleteDesignation(int id)
         {
             try
             {
